@@ -15,7 +15,6 @@ def create_card_deck():
     suits = ["spades", "diamonds", "clubs", "hearts"]
     for suit in suits:
         for num in range(1,14):
-            #card_deck.append(str("{}-{}".format(num, suit)))
             card_deck.append(
                 {
                     "name": str("{}-{}".format(num, suit)),
@@ -52,7 +51,9 @@ def home():
             return render_template("home.html", error="Please enter a room code.", code=code, name=name)
         
         room = code
+        #create new room
         if create != False:
+            #generate new room id and card deck
             room = generate_unique_code(4)
             deck = create_card_deck()
             random.shuffle(deck)
@@ -86,6 +87,11 @@ def message(data):
     }
     send(content, to=room)
     rooms[room]["messages"].append(content)
+    #if message is a card action (not user has left/joined) delete that card from the deck
+    if not data["data"].startswith("has"):
+        print("Deleting card from deck")
+        rooms[room]["deck"].pop()
+
     print(f"{session.get('name')} said: {data['data']}")
 
 
