@@ -9,7 +9,13 @@ socketio = SocketIO(app)
 
 rooms = {}
 
+class Player():
+    def __init__(self,name):
+        self.name = name
+        self.turn = 0
 
+    def __str__(self):
+        return f"{self.name}"
 
 def challenge_generator(number):
     if number == 1:
@@ -90,7 +96,7 @@ def home():
             room = generate_unique_code(4)
             deck = create_card_deck()
             random.shuffle(deck)
-            rooms[room] = {"members": 0, "messages": [], "deck": deck}
+            rooms[room] = {"players": [], "messages": [], "deck": deck}
         elif code not in rooms:
             return render_template("home.html", error="Room does not exist.", code=code, name=name)
         
@@ -106,7 +112,7 @@ def room():
     if room is None or session.get("name") is None or room not in rooms:
         return redirect(url_for("home"))
 
-    return render_template("room.html", code=room, messages=rooms[room]["messages"], deck=rooms[room]["deck"])
+    return render_template("room.html", code=room, messages=rooms[room]["messages"], deck=rooms[room]["deck"], players=rooms[room]["players"])
 
 @socketio.on("message")
 def message(data):
@@ -140,7 +146,11 @@ def connect(auth):
     
     join_room(room)
     send({"name": name, "message": "has entered the room"}, to=room)
-    rooms[room]["members"] += 1
+    
+    player = Player(name)
+    if len(rooms[room]["players"]) == 0:
+        player.turn = 1
+    rooms[room]["players"].append(player)
     print(f"{name} joined room {room}")
 
 @socketio.on("disconnect")
@@ -150,8 +160,8 @@ def disconnect():
     leave_room(room)
 
     if room in rooms:
-        rooms[room]["members"] -= 1
-        if rooms[room]["members"] <= 0:
+        rooms[room]["players"].remove(name)
+        if len(rooms[room]["players"]) <= 0:
             del rooms[room]
     
     send({"name": name, "message": "has left the room"}, to=room)
