@@ -131,7 +131,7 @@ def message(data):
         print("Deleting card from deck")
         rooms[room]["deck"].pop()
 
-    print(f"{session.get('name')} said: {data['data']}")
+    print(f"{session.get('name')} sent msg: {data['data']}")
 
 
 @socketio.on("connect")
@@ -160,7 +160,9 @@ def disconnect():
     leave_room(room)
 
     if room in rooms:
-        rooms[room]["players"].remove(name)
+        for player in rooms[room]["players"]:
+            if player.name == name:
+                rooms[room]["players"].remove(player)
         if len(rooms[room]["players"]) <= 0:
             del rooms[room]
     

@@ -4,6 +4,7 @@
     <img class = "card_front" src="static/images/back-maroon.png" id="card_image"/>
     <h2 id="current_card">Pick a card to start the game</h2>
     <button class="new_card_button" onClick="pickCard()">Pick a new card</button>
+    <button class="leave_button" onClick="leaveRoom()">Leave room</button>
     <h3>History:</h3>
     <div class="history" id="history"></div>
 </div>
@@ -45,17 +46,29 @@
 
   //function for picking new card from deck
   const pickCard = () => {
-    new_card = deck.pop()
-    //change current_card to this one and send information about this action
-    document.getElementById("current_card").innerHTML = `${new_card.name}: ${new_card.challenge}`;
-    document.getElementById('card_image').src = "static/images/" + new_card.name + ".png";
-    sendActionInfo(`${new_card.name}: ${new_card.challenge}`)
+    if(deck.length < 1) {
+        document.getElementById("current_card").innerHTML = `Deck is empty.`;
+        document.getElementById('card_image').src = "static/images/back-maroon.png";
+    }
+    else {
+        new_card = deck.pop()
+        //change current_card to this one and send information about this action
+        document.getElementById("current_card").innerHTML = `${new_card.name}: ${new_card.challenge}`;
+        document.getElementById('card_image').src = "static/images/" + new_card.name + ".png";
+        sendActionInfo(`${new_card.name}: ${new_card.challenge}`)
+    }
   }
 
   //function for sending information about aciton as message
   const sendActionInfo = (input) => {
     if (input == "") return;
     socketio.emit("message", { data: input });
+  };
+
+  //function for disconnecting user
+  const leaveRoom = () => {
+    console.log("Leaving room");
+    window.location.href = "/";
   };
 
   //this event happens when new message is received
@@ -70,12 +83,18 @@
         //if this card is still in local deck, delete it
         for (let i = 0; i < deck.length; i++) {
             if(deck[i].name == msg_split[0]) {
-                console.log("Removed card: ", deck[i])
+                //console.log("Removed card: ", deck[i])
                 deck.splice(i, 1)
             }
         }
-        document.getElementById("current_card").innerHTML = `${data.message}`;
-        document.getElementById('card_image').src = "static/images/" + msg_split[0] + ".png";
+        if(deck.length < 1) {
+            document.getElementById("current_card").innerHTML = `Deck is empty.`;
+            document.getElementById('card_image').src = "static/images/back-maroon.png";
+        }
+        else {
+            document.getElementById("current_card").innerHTML = `${data.message}`;
+            document.getElementById('card_image').src = "static/images/" + msg_split[0] + ".png";
+        }
     }
   });
 

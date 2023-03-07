@@ -78,6 +78,23 @@ h2 {
 }
 
 .new_card_button{
-    padding: 10px;
-    margin: 20px 0px 80px 0px;
+    padding: 10px 15px;
+    margin: 25px 0px;
+    background-color: green;
+    border-radius: 10px;
+    border-width: 0;
+    -webkit-text-fill-color: beige;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.leave_button{
+    padding: 10px 15px;
+    margin: 25px 0px 50px 0px;
+    background-color: red;
+    border-radius: 10px;
+    border-width: 0;
+    -webkit-text-fill-color: beige;
+    font-size: 14px;
+    font-weight: 600;
 }
