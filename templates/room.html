@@ -37,6 +37,12 @@
     })
   }
 
+  const catchUpToGame = (latestMessage) => {
+    document.getElementById("current_card").innerHTML = `${latestMessage}`;
+    msg_split = latestMessage.split(':')
+    document.getElementById('card_image').src = "static/images/" + msg_split[0] + ".png";
+  }
+
   //function for picking new card from deck
   const pickCard = () => {
     new_card = deck.pop()
@@ -69,6 +75,7 @@
             }
         }
         document.getElementById("current_card").innerHTML = `${data.message}`;
+        document.getElementById('card_image').src = "static/images/" + msg_split[0] + ".png";
     }
   });
 
@@ -85,4 +92,11 @@
   createMessage("{{msg.name}}", "{{msg.message}}");
 </script>
 {% endfor %}
+
+{% for msg in messages %}
+<script type="text/javascript">
+  catchUpToGame("{{msg.message}}");
+</script>
+{% endfor %}
+
 {% endblock %}

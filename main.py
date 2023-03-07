@@ -19,9 +19,9 @@ def challenge_generator(number):
     if number == 3:
         challenge = "3-2-3-2"
     if number == 4:
-        challenge = "Yell <sensored>"
+        challenge = "Yell Kotler"
     if number == 5:
-        challenge = "Yell <sensored>"
+        challenge = "Yell Kotler"
     if number == 6:
         challenge = "Category"
     if number == 7:
