@@ -9,16 +9,49 @@ socketio = SocketIO(app)
 
 rooms = {}
 
+
+
+def challenge_generator(number):
+    if number == 1:
+        challenge = "Give 3 sips"
+    if number == 2:
+        challenge = "Drink 3 sips"
+    if number == 3:
+        challenge = "3-2-3-2"
+    if number == 4:
+        challenge = "Yell <sensored>"
+    if number == 5:
+        challenge = "Yell <sensored>"
+    if number == 6:
+        challenge = "Category"
+    if number == 7:
+        challenge = "Waterwall"
+    if number == 8:
+        challenge = "Math game"
+    if number == 9:
+        challenge = "Make a rule"
+    if number == 10:
+        challenge = "Question master"
+    if number == 11:
+        challenge = "Break card"
+    if number == 12:
+        challenge = "The bitch"
+    if number == 13:
+        challenge = "Story time"
+    
+    return challenge
+
 #testing stuff
 def create_card_deck():
     card_deck = []
-    suits = ["spades", "diamonds", "clubs", "hearts"]
+    suits = ["clubs", "hearts", "diamonds", "spades"]
     for suit in suits:
-        for num in range(1,14):
+        for number in range(1,14):
+            challenge = challenge_generator(number)
             card_deck.append(
                 {
-                    "name": str("{}-{}".format(num, suit)),
-                    "challenge": str("Drink {} beers or take 3 sips".format(num))
+                    "name": str("{}-{}".format(number, suit)),
+                    "challenge": str(challenge)
                 }
             )
     return card_deck
