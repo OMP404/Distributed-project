@@ -38,6 +38,7 @@
     })
   }
 
+  //function for updating the gamestate for players that joined mid game
   const catchUpToGame = (latestMessage) => {
     document.getElementById("current_card").innerHTML = `${latestMessage}`;
     msg_split = latestMessage.split(':')
@@ -87,7 +88,8 @@
         }
     }
   });
-  
+
+  //this event happens when a new card is picked and the user has the turn
   socketio.on("myTurn", function(){
     if(deck.length < 1) {
         document.getElementById("current_card").innerHTML = `Deck is empty.`;
@@ -99,6 +101,9 @@
         document.getElementById("current_card").innerHTML = `${new_card.name}: ${new_card.challenge}`;
         document.getElementById('card_image').src = "static/images/" + new_card.name + ".png";
         sendActionInfo(`${new_card.name}: ${new_card.challenge}`)
+        if(new_card.challenge == "Break card" || new_card.challenge == "The slave" || new_card.challenge == "Question master"){
+
+        }
     }
   });
 
