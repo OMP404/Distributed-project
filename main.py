@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, session, redirect, url_for
-from flask_socketio import join_room, leave_room, send, SocketIO
+from flask_socketio import join_room, leave_room, send, SocketIO, emit
 import random
 from string import ascii_uppercase
 
@@ -9,43 +9,22 @@ socketio = SocketIO(app)
 
 rooms = {}
 
-class Player():
-    def __init__(self,name):
-        self.name = name
-        self.turn = 0
-
-    def __str__(self):
-        return f"{self.name}"
-
 def challenge_generator(number):
-    if number == 1:
-        challenge = "Give 3 sips"
-    if number == 2:
-        challenge = "Drink 3 sips"
-    if number == 3:
-        challenge = "3-2-3-2"
-    if number == 4:
-        challenge = "Yell Kotler"
-    if number == 5:
-        challenge = "Yell Kotler"
-    if number == 6:
-        challenge = "Category"
-    if number == 7:
-        challenge = "Waterwall"
-    if number == 8:
-        challenge = "Math game"
-    if number == 9:
-        challenge = "Make a rule"
-    if number == 10:
-        challenge = "Question master"
-    if number == 11:
-        challenge = "Break card"
-    if number == 12:
-        challenge = "The bitch"
-    if number == 13:
-        challenge = "Story time"
-    
-    return challenge
+    challenges = [
+    "Give 3 sips",
+    "Drink 3 sips",
+    "3-2-3-2",
+    "Yell Kotler",
+    "Yell Kotler",
+    "Category",
+    "Waterwall",
+    "Math game",
+    "Make a rule",
+    "Question master",
+    "Break card",
+    "The slave",
+    "Story time"
+    ]
 
 #testing stuff
 def create_card_deck():
@@ -56,7 +35,7 @@ def create_card_deck():
             challenge = challenge_generator(number)
             card_deck.append(
                 {
-                    "name": str("{}-{}".format(number, suit)),
+                    "name": str(f"{number}-{suit}"),
                     "challenge": str(challenge)
                 }
             )
@@ -96,7 +75,7 @@ def home():
             room = generate_unique_code(4)
             deck = create_card_deck()
             random.shuffle(deck)
-            rooms[room] = {"players": [], "messages": [], "deck": deck}
+            rooms[room] = {"players": [], "messages": [], "deck": deck, "turn": 0}
         elif code not in rooms:
             return render_template("home.html", error="Room does not exist.", code=code, name=name)
         
@@ -112,7 +91,7 @@ def room():
     if room is None or session.get("name") is None or room not in rooms:
         return redirect(url_for("home"))
 
-    return render_template("room.html", code=room, messages=rooms[room]["messages"], deck=rooms[room]["deck"], players=rooms[room]["players"])
+    return render_template("room.html", code=room, messages=rooms[room]["messages"], deck=rooms[room]["deck"])
 
 @socketio.on("message")
 def message(data):
@@ -133,6 +112,23 @@ def message(data):
 
     print(f"{session.get('name')} sent msg: {data['data']}")
 
+@socketio.on("checkTurn")
+def checkTurn():
+    room = session.get("room")
+    name = session.get("name")
+    turn = rooms[room]["turn"]
+    players = rooms[room]["players"]
+
+    #If the last player in the list has the turn and they leave, this passes the turn to the first player
+    if turn > len(players) - 1:
+        rooms[room]["turn"] = 0
+
+    if name == players[turn]:
+        if len(players) == turn + 1:
+            rooms[room]["turn"] = 0
+        else:
+            rooms[room]["turn"] += 1
+        emit("myTurn")
 
 @socketio.on("connect")
 def connect(auth):
@@ -147,10 +143,7 @@ def connect(auth):
     join_room(room)
     send({"name": name, "message": "has entered the room"}, to=room)
     
-    player = Player(name)
-    if len(rooms[room]["players"]) == 0:
-        player.turn = 1
-    rooms[room]["players"].append(player)
+    rooms[room]["players"].append(name)
     print(f"{name} joined room {room}")
 
 @socketio.on("disconnect")
@@ -161,7 +154,7 @@ def disconnect():
 
     if room in rooms:
         for player in rooms[room]["players"]:
-            if player.name == name:
+            if player == name:
                 rooms[room]["players"].remove(player)
         if len(rooms[room]["players"]) <= 0:
             del rooms[room]
