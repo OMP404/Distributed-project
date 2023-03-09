@@ -1,3 +1,5 @@
+from flask import Flask, render_template, request, session, redirect, url_for
+from flask_socketio import join_room, leave_room, send, SocketIO, emit
 import random
 from string import ascii_uppercase
 
@@ -25,16 +27,6 @@ challenges = [
     "The slave",
     "Story time"
 ]
-
-
-class Player():
-    def __init__(self, name):
-        self.name = name
-        self.turn = 0
-
-    def __str__(self):
-        return f"{self.name}"
-
 
 def challenge_generator(number):
     return challenges[number-1]
@@ -95,7 +87,7 @@ def home():
             room = generate_unique_code(4)
             deck = create_card_deck()
             random.shuffle(deck)
-            rooms[room] = {"players": [], "messages": [], "deck": deck}
+            rooms[room] = {"players": [], "messages": [], "deck": deck, "turn": 0}
         elif code not in rooms:
             return render_template("home.html", error="Room does not exist.", code=code, name=name)
 
@@ -115,8 +107,7 @@ def room():
     return render_template("room.html",
                            code=room,
                            messages=rooms[room]["messages"],
-                           deck=rooms[room]["deck"],
-                           players=rooms[room]["players"])
+                           deck=rooms[room]["deck"])
 
 
 @socketio.on("message")
@@ -138,6 +129,23 @@ def message(data):
 
     print(f"{session.get('name')} sent msg: {data['data']}")
 
+@socketio.on("checkTurn")
+def checkTurn():
+    room = session.get("room")
+    name = session.get("name")
+    turn = rooms[room]["turn"]
+    players = rooms[room]["players"]
+
+    #If the last player in the list has the turn and they leave, this passes the turn to the first player
+    if turn > len(players) - 1:
+        rooms[room]["turn"] = 0
+
+    if name == players[turn]:
+        if len(players) == turn + 1:
+            rooms[room]["turn"] = 0
+        else:
+            rooms[room]["turn"] += 1
+        emit("myTurn")
 
 @socketio.on("connect")
 def connect(auth):
@@ -151,11 +159,8 @@ def connect(auth):
 
     join_room(room)
     send({"name": name, "message": "has entered the room"}, to=room)
-
-    player = Player(name)
-    if len(rooms[room]["players"]) == 0:
-        player.turn = 1
-    rooms[room]["players"].append(player)
+    
+    rooms[room]["players"].append(name)
     print(f"{name} joined room {room}")
 
 
@@ -167,7 +172,7 @@ def disconnect():
 
     if room in rooms:
         for player in rooms[room]["players"]:
-            if player.name == name:
+            if player == name:
                 rooms[room]["players"].remove(player)
         if len(rooms[room]["players"]) <= 0:
             del rooms[room]

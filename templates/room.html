@@ -38,6 +38,7 @@
     })
   }
 
+  //function for updating the gamestate for players that joined mid game
   const catchUpToGame = (latestMessage) => {
     document.getElementById("current_card").innerHTML = `${latestMessage}`;
     msg_split = latestMessage.split(':')
@@ -46,17 +47,7 @@
 
   //function for picking new card from deck
   const pickCard = () => {
-    if(deck.length < 1) {
-        document.getElementById("current_card").innerHTML = `Deck is empty.`;
-        document.getElementById('card_image').src = "static/images/back-maroon.png";
-    }
-    else {
-        new_card = deck.pop()
-        //change current_card to this one and send information about this action
-        document.getElementById("current_card").innerHTML = `${new_card.name}: ${new_card.challenge}`;
-        document.getElementById('card_image').src = "static/images/" + new_card.name + ".png";
-        sendActionInfo(`${new_card.name}: ${new_card.challenge}`)
-    }
+    socketio.emit("checkTurn");
   }
 
   //function for sending information about aciton as message
@@ -94,6 +85,24 @@
         else {
             document.getElementById("current_card").innerHTML = `${data.message}`;
             document.getElementById('card_image').src = "static/images/" + msg_split[0] + ".png";
+        }
+    }
+  });
+
+  //this event happens when a new card is picked and the user has the turn
+  socketio.on("myTurn", function(){
+    if(deck.length < 1) {
+        document.getElementById("current_card").innerHTML = `Deck is empty.`;
+        document.getElementById('card_image').src = "static/images/back-maroon.png";
+    }
+    else {
+        new_card = deck.pop()
+        //change current_card to this one and send information about this action
+        document.getElementById("current_card").innerHTML = `${new_card.name}: ${new_card.challenge}`;
+        document.getElementById('card_image').src = "static/images/" + new_card.name + ".png";
+        sendActionInfo(`${new_card.name}: ${new_card.challenge}`)
+        if(new_card.challenge == "Break card" || new_card.challenge == "The slave" || new_card.challenge == "Question master"){
+
         }
     }
   });
