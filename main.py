@@ -25,6 +25,8 @@ def challenge_generator(number):
     "The slave",
     "Story time"
     ]
+    
+    return challenges[number-1]
 
 #testing stuff
 def create_card_deck():
