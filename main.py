@@ -9,6 +9,22 @@ socketio = SocketIO(app)
 
 rooms = {}
 
+challenges = [
+    "Give 3 sips",
+    "Drink 3 sips",
+    "3-2-3-2",
+    "Yell Kotler",
+    "Yell Kotler",
+    "Category",
+    "Waterwall",
+    "Math game",
+    "Make a rule",
+    "Question master",
+    "Break card",
+    "The slave",
+    "Story time"
+    ]
+
 class Player():
     def __init__(self,name):
         self.name = name
@@ -18,34 +34,7 @@ class Player():
         return f"{self.name}"
 
 def challenge_generator(number):
-    if number == 1:
-        challenge = "Give 3 sips"
-    if number == 2:
-        challenge = "Drink 3 sips"
-    if number == 3:
-        challenge = "3-2-3-2"
-    if number == 4:
-        challenge = "Yell Kotler"
-    if number == 5:
-        challenge = "Yell Kotler"
-    if number == 6:
-        challenge = "Category"
-    if number == 7:
-        challenge = "Waterwall"
-    if number == 8:
-        challenge = "Math game"
-    if number == 9:
-        challenge = "Make a rule"
-    if number == 10:
-        challenge = "Question master"
-    if number == 11:
-        challenge = "Break card"
-    if number == 12:
-        challenge = "The bitch"
-    if number == 13:
-        challenge = "Story time"
-    
-    return challenge
+    return challenges[number-1]
 
 #testing stuff
 def create_card_deck():
@@ -56,7 +45,7 @@ def create_card_deck():
             challenge = challenge_generator(number)
             card_deck.append(
                 {
-                    "name": str("{}-{}".format(number, suit)),
+                    "name": str(f"{number}-{suit}"),
                     "challenge": str(challenge)
                 }
             )
