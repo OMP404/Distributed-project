@@ -1,2 +1,6 @@
 dsenv/
 __pycache__/
+.pytest_cache/
+dsenv/
+tests/.pytest_cache/
+tests/__pycache__/
