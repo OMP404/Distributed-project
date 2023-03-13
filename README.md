@@ -19,6 +19,6 @@ Use the command:
 Python main.py 
 ```
 
-to run the application.
+to run the application. Open a web browser and go to one of the suggested ip addresses.
 
 To create a game you need to choose a username and then press the Create a Room button
