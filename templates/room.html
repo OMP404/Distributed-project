@@ -4,6 +4,7 @@
     <img class = "card_front" src="static/images/back-maroon.png" id="card_image"/>
     <h2 id="current_card">Pick a card to start the game</h2>
     <button class="new_card_button" onClick="pickCard()">Pick a new card</button>
+    <button class="new_deck_button" onClick="newDeck()">Restart game</button>
     <button class="leave_button" onClick="leaveRoom()">Leave room</button>
     <h3>History:</h3>
     <div class="history" id="history"></div>
@@ -17,17 +18,19 @@
 
   //function for creating a new message and displaying it in "history" div
   const createMessage = (name, msg) => {
-    const content = `
-    <div class="text">
-        <span>
-            <strong>${name}</strong>: ${msg}
-        </span>
-        <span class="muted">
-            ${new Date().toLocaleString()}
-        </span>
-    </div>
-    `;
-    history.innerHTML += content;
+    if (msg.startsWith('Action') || msg.startsWith('has') || msg.startsWith('RESTART')) {
+        const content = `
+        <div class="text">
+            <span>
+                <strong>${name}</strong>: ${msg}
+            </span>
+            <span class="muted">
+                ${new Date().toLocaleString()}
+            </span>
+        </div>
+        `;
+        history.innerHTML += content;
+    }
   };
 
   //function for adding new card to deck
@@ -40,14 +43,24 @@
 
   //function for updating the gamestate for players that joined mid game
   const catchUpToGame = (latestMessage) => {
-    document.getElementById("current_card").innerHTML = `${latestMessage}`;
-    msg_split = latestMessage.split(':')
-    document.getElementById('card_image').src = "static/images/" + msg_split[0] + ".png";
+    if (latestMessage.startsWith('Action') || latestMessage.startsWith('has') || latestMessage.startsWith('RESTART')) {
+        document.getElementById("current_card").innerHTML = `${latestMessage}`;
+        msg_split = latestMessage.split(':')
+        document.getElementById('card_image').src = "static/images/" + msg_split[1] + ".png";
+    }
+    else {
+        document.getElementById("current_card").innerHTML = `Wait for your turn`;
+        document.getElementById('card_image').src = "static/images/back-maroon.png";
+    }
   }
 
   //function for picking new card from deck
   const pickCard = () => {
     socketio.emit("checkTurn");
+  }
+
+  const newDeck = () => {
+    sendActionInfo(`RESTART GAME`)
   }
 
   //function for sending information about aciton as message
@@ -64,16 +77,21 @@
 
   //this event happens when new message is received
   socketio.on("message", (data) => {
-    createMessage(data.name, data.message);
-    console.log("Received message")
+
+    if (data.message.startsWith('has')) {
+        createMessage(data.name, data.message);
+        console.log("Received message")
+    }
     //if message is card action, delete card from deck
-    if (!data.message.startsWith('has')) {
+    else if (data.message.startsWith('Action')) {
+        createMessage(data.name, data.message);
+        console.log("Received message")
         //split msg into card name and challenge
         msg_split = data.message.split(':')
-        console.log(msg_split[0])
+        console.log(msg_split[1])
         //if this card is still in local deck, delete it
         for (let i = 0; i < deck.length; i++) {
-            if(deck[i].name == msg_split[0]) {
+            if(deck[i].name == msg_split[1]) {
                 //console.log("Removed card: ", deck[i])
                 deck.splice(i, 1)
             }
@@ -83,8 +101,28 @@
             document.getElementById('card_image').src = "static/images/back-maroon.png";
         }
         else {
-            document.getElementById("current_card").innerHTML = `${data.message}`;
-            document.getElementById('card_image').src = "static/images/" + msg_split[0] + ".png";
+            document.getElementById("current_card").innerHTML = `${msg_split[1]}: ${msg_split[2]}`;
+            document.getElementById('card_image').src = "static/images/" + msg_split[1] + ".png";
+        }
+    }
+    //if message was restart message
+    else if (data.message.startsWith('RESTART')) {
+        createMessage(data.name, data.message);
+        console.log("Received message")
+    }
+    //else message contains new deck
+    else {
+        document.getElementById("current_card").innerHTML = `Game restarted.`;
+        document.getElementById('card_image').src = "static/images/back-maroon.png";
+        msg_split = data.message.split(';')
+        //empty current deck and initialize new deck
+        while(deck.length > 0) {
+            deck.pop()
+        }
+        for (let i = 0; i < 52; i++) {
+            new_card = JSON.parse(msg_split[i])
+            console.log("Creating card:", new_card["name"], new_card["challenge"])
+            createCard(new_card["name"], new_card["challenge"])
         }
     }
   });
@@ -100,7 +138,7 @@
         //change current_card to this one and send information about this action
         document.getElementById("current_card").innerHTML = `${new_card.name}: ${new_card.challenge}`;
         document.getElementById('card_image').src = "static/images/" + new_card.name + ".png";
-        sendActionInfo(`${new_card.name}: ${new_card.challenge}`)
+        sendActionInfo(`Action:${new_card.name}: ${new_card.challenge}`)
         if(new_card.challenge == "Break card" || new_card.challenge == "The slave" || new_card.challenge == "Question master"){
 
         }

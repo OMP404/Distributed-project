@@ -98,3 +98,14 @@ h2 {
     font-size: 14px;
     font-weight: 600;
 }
+
+.new_deck_button{
+    padding: 10px 15px;
+    margin: 25px 0px;
+    background-color: orange;
+    border-radius: 10px;
+    border-width: 0;
+    -webkit-text-fill-color: beige;
+    font-size: 14px;
+    font-weight: 600;
+}

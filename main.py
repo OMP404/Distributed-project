@@ -7,10 +7,10 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "hjhjsdahhds"
 socketio = SocketIO(app)
 
-rooms = {}
+host = "0.0.0.0"    #   your local address. Enabling local mp 
+rooms = {}          #   initialize rooms
 
-def challenge_generator(number):
-    challenges = [
+challenges = [
     "Give 3 sips",
     "Drink 3 sips",
     "3-2-3-2",
@@ -24,16 +24,17 @@ def challenge_generator(number):
     "Break card",
     "The slave",
     "Story time"
-    ]
-    
+]
+
+def challenge_generator(number):
     return challenges[number-1]
 
-#testing stuff
+
 def create_card_deck():
     card_deck = []
     suits = ["clubs", "hearts", "diamonds", "spades"]
     for suit in suits:
-        for number in range(1,14):
+        for number in range(1, 14):
             challenge = challenge_generator(number)
             card_deck.append(
                 {
@@ -49,11 +50,12 @@ def generate_unique_code(length):
         code = ""
         for _ in range(length):
             code += random.choice(ascii_uppercase)
-        
+
         if code not in rooms:
             break
-    
+
     return code
+
 
 @app.route("/", methods=["POST", "GET"])
 def home():
@@ -65,27 +67,32 @@ def home():
         create = request.form.get("create", False)
 
         if not name:
-            return render_template("home.html", error="Please enter a name.", code=code, name=name)
+            return render_template("home.html",
+                                   error="Please enter a name.",
+                                   code=code, name=name)
 
-        if join != False and not code:
-            return render_template("home.html", error="Please enter a room code.", code=code, name=name)
-        
+        if join is not False and not code:
+            return render_template("home.html",
+                                   error="Please enter a room code.",
+                                   code=code, name=name)
+
         room = code
-        #create new room
-        if create != False:
-            #generate new room id and card deck
+        # create new room
+        if create is not False:
+            # generate new room id and card deck
             room = generate_unique_code(4)
             deck = create_card_deck()
             random.shuffle(deck)
             rooms[room] = {"players": [], "messages": [], "deck": deck, "turn": 0}
         elif code not in rooms:
             return render_template("home.html", error="Room does not exist.", code=code, name=name)
-        
+
         session["room"] = room
         session["name"] = name
         return redirect(url_for("room"))
 
     return render_template("home.html")
+
 
 @app.route("/room")
 def room():
@@ -93,24 +100,52 @@ def room():
     if room is None or session.get("name") is None or room not in rooms:
         return redirect(url_for("home"))
 
-    return render_template("room.html", code=room, messages=rooms[room]["messages"], deck=rooms[room]["deck"])
+    return render_template("room.html",
+                           code=room,
+                           messages=rooms[room]["messages"],
+                           deck=rooms[room]["deck"])
+
 
 @socketio.on("message")
 def message(data):
     room = session.get("room")
     if room not in rooms:
-        return 
+        return
 
     content = {
         "name": session.get("name"),
-        "message": data["data"]
+        "message": ""
     }
-    send(content, to=room)
-    rooms[room]["messages"].append(content)
-    #if message is a card action (not user has left/joined) delete that card from the deck
-    if not data["data"].startswith("has"):
-        print("Deleting card from deck")
-        rooms[room]["deck"].pop()
+
+    #if restart message was received
+    if data["data"].startswith("RESTART"):
+        #send restart message
+        content["message"] = data["data"]
+        send(content, to=room)
+        rooms[room]["messages"].append(content)
+        #send new deck as a message
+        new_deck = create_card_deck()
+        random.shuffle(new_deck)
+        rooms[room]["deck"] = new_deck
+        #empty message
+        content["message"] = ""
+        #add new cards to message as string
+        for card in new_deck:
+            content["message"] = content["message"] + str(card) + ";"
+        #replace ' with "
+        content["message"] = content["message"].replace("\'", "\"")
+        print(content["message"])
+        #send new deck to the room
+        send(content, to=room)
+    #if message is not restart
+    elif data["data"].startswith("Action") or data["data"].startswith("has"):
+        content["message"] = data["data"]
+        send(content, to=room)
+        rooms[room]["messages"].append(content)
+        #if message is a card action (not user has left/joined) delete that card from the deck
+        if data["data"].startswith("Action"):
+            print("Deleting card from deck")
+            rooms[room]["deck"].pop()
 
     print(f"{session.get('name')} sent msg: {data['data']}")
 
@@ -144,12 +179,13 @@ def connect(auth):
     if room not in rooms:
         leave_room(room)
         return
-    
+
     join_room(room)
     send({"name": name, "message": "has entered the room"}, to=room)
     
     rooms[room]["players"].append(name)
     print(f"{name} joined room {room}")
+
 
 @socketio.on("disconnect")
 def disconnect():
@@ -163,9 +199,10 @@ def disconnect():
                 rooms[room]["players"].remove(player)
         if len(rooms[room]["players"]) <= 0:
             del rooms[room]
-    
+
     send({"name": name, "message": "has left the room"}, to=room)
     print(f"{name} has left the room {room}")
 
+
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    socketio.run(app, host, debug=True)
