@@ -18,8 +18,22 @@
 
   //function for creating a new message and displaying it in "history" div
   const createMessage = (name, msg) => {
-    if (msg.startsWith('Action') || msg.startsWith('has') || msg.startsWith('RESTART')) {
+    msg_split = msg.split(':')
+    if (msg.startsWith('Action')) {
         const content = `
+        <div class="text">
+            <span>
+                <strong>${name}</strong>: ${msg_split[1]}: ${msg_split[2]}
+            </span>
+            <span class="muted">
+                ${new Date().toLocaleString()}
+            </span>
+        </div>
+        `;
+        history.innerHTML += content;
+    }
+   else if(msg.startsWith('has') || msg.startsWith('RESTART')) {
+    const content = `
         <div class="text">
             <span>
                 <strong>${name}</strong>: ${msg}
@@ -31,6 +45,7 @@
         `;
         history.innerHTML += content;
     }
+  
   };
 
   //function for adding new card to deck
@@ -121,7 +136,7 @@
         }
         for (let i = 0; i < 52; i++) {
             new_card = JSON.parse(msg_split[i])
-            console.log("Creating card:", new_card["name"], new_card["challenge"])
+            //console.log("Creating card:", new_card["name"], new_card["challenge"])
             createCard(new_card["name"], new_card["challenge"])
         }
     }
@@ -139,9 +154,6 @@
         document.getElementById("current_card").innerHTML = `${new_card.name}: ${new_card.challenge}`;
         document.getElementById('card_image').src = "static/images/" + new_card.name + ".png";
         sendActionInfo(`Action:${new_card.name}: ${new_card.challenge}`)
-        if(new_card.challenge == "Break card" || new_card.challenge == "The slave" || new_card.challenge == "Question master"){
-
-        }
     }
   });
 

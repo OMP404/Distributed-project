@@ -134,7 +134,7 @@ def message(data):
             content["message"] = content["message"] + str(card) + ";"
         #replace ' with "
         content["message"] = content["message"].replace("\'", "\"")
-        print(content["message"])
+        #print(content["message"])
         #send new deck to the room
         send(content, to=room)
     #if message is not restart
@@ -159,6 +159,7 @@ def checkTurn():
     #If the last player in the list has the turn and they leave, this passes the turn to the first player
     if turn > len(players) - 1:
         rooms[room]["turn"] = 0
+        turn = rooms[room]["turn"]
 
     if name == players[turn]:
         if len(players) == turn + 1:
