@@ -8,7 +8,7 @@ In order to run the application you firstly need to run:
 
 ```
 git clone https://github.com/OMP404/Distributed-project.git
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 to get the required software
