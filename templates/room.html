@@ -107,6 +107,21 @@
     }
   });
 
+
+  socketio.on("notMyTurn", (data) => {
+    const content = `
+    <div class="text">
+        <span>
+            <strong>It is ${data}'s turn</strong>
+        </span>
+        <span class="muted">
+            ${new Date().toLocaleString()}
+        </span>
+    </div>
+    `;
+    history.innerHTML += content;
+
+  })
 </script>
 
 {% for card in deck %}

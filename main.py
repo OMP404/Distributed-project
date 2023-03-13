@@ -131,6 +131,9 @@ def checkTurn():
         else:
             rooms[room]["turn"] += 1
         emit("myTurn")
+    else:
+        emit("notMyTurn", players[turn])
+    
 
 @socketio.on("connect")
 def connect(auth):
