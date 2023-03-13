@@ -7,7 +7,8 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "hjhjsdahhds"
 socketio = SocketIO(app)
 
-rooms = {}
+host = "0.0.0.0"    #   your local address. Enabling local mp 
+rooms = {}          #   initialize rooms
 
 challenges = [
     "Give 3 sips",
@@ -201,4 +202,4 @@ def disconnect():
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    socketio.run(app, host, debug=True)
