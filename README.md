@@ -4,7 +4,11 @@ This project is a multiplayer card game. A user can create or join a room where 
 
 This project uses Python version 3.7
 
-In order to run the application you firstly need to run pip install requirements.txt to get the required software
+In order to run the application you firstly need to run:
+
+pip install requirements.txt
+
+to get the required software
 
 Use the command:
 
