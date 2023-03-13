@@ -14,4 +14,6 @@ Use the command:
 
 Python main.py 
 
-to run the application
+to run the application.
+
+To create a game you need to choose a username and then press the Create a Room button
