@@ -3,9 +3,6 @@ from flask_socketio import join_room, leave_room, send, SocketIO, emit
 import random
 from string import ascii_uppercase
 
-from flask import Flask, redirect, render_template, request, session, url_for
-from flask_socketio import SocketIO, join_room, leave_room, send
-
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "hjhjsdahhds"
 socketio = SocketIO(app)
@@ -30,8 +27,6 @@ challenges = [
 
 def challenge_generator(number):
     return challenges[number-1]
-
-# testing stuff
 
 
 def create_card_deck():
@@ -118,14 +113,38 @@ def message(data):
 
     content = {
         "name": session.get("name"),
-        "message": data["data"]
+        "message": ""
     }
-    send(content, to=room)
-    rooms[room]["messages"].append(content)
-    # if message is a card action (not user has left/joined) delete that card from the deck
-    if not data["data"].startswith("has"):
-        print("Deleting card from deck")
-        rooms[room]["deck"].pop()
+
+    #if restart message was received
+    if data["data"].startswith("RESTART"):
+        #send restart message
+        content["message"] = data["data"]
+        send(content, to=room)
+        rooms[room]["messages"].append(content)
+        #send new deck as a message
+        new_deck = create_card_deck()
+        random.shuffle(new_deck)
+        rooms[room]["deck"] = new_deck
+        #empty message
+        content["message"] = ""
+        #add new cards to message as string
+        for card in new_deck:
+            content["message"] = content["message"] + str(card) + ";"
+        #replace ' with "
+        content["message"] = content["message"].replace("\'", "\"")
+        print(content["message"])
+        #send new deck to the room
+        send(content, to=room)
+    #if message is not restart
+    elif data["data"].startswith("Action") or data["data"].startswith("has"):
+        content["message"] = data["data"]
+        send(content, to=room)
+        rooms[room]["messages"].append(content)
+        #if message is a card action (not user has left/joined) delete that card from the deck
+        if data["data"].startswith("Action"):
+            print("Deleting card from deck")
+            rooms[room]["deck"].pop()
 
     print(f"{session.get('name')} sent msg: {data['data']}")
 
