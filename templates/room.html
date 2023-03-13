@@ -58,9 +58,9 @@
 
   //function for updating the gamestate for players that joined mid game
   const catchUpToGame = (latestMessage) => {
-    if (latestMessage.startsWith('Action') || latestMessage.startsWith('has') || latestMessage.startsWith('RESTART')) {
-        document.getElementById("current_card").innerHTML = `${latestMessage}`;
+    if (latestMessage.startsWith('Action')) {
         msg_split = latestMessage.split(':')
+        document.getElementById("current_card").innerHTML = `${msg_split[1]}: ${msg_split[2]}`;
         document.getElementById('card_image').src = "static/images/" + msg_split[1] + ".png";
     }
     else {
