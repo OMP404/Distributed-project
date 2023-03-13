@@ -6,14 +6,18 @@ This project uses Python version 3.7
 
 In order to run the application you firstly need to run:
 
+```
 git clone https://github.com/OMP404/Distributed-project.git
 pip install requirements.txt
+```
 
 to get the required software
 
 Use the command:
 
+```
 Python main.py 
+```
 
 to run the application.
 
