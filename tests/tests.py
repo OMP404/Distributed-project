@@ -40,9 +40,6 @@ def test_room(client):
 
     response = client.get("/room")
     assert response.status_code == 200
-    data = response.data.decode("utf-8")
-    with open("data.txt", "w") as f:
-        f.write(data)
     assert b"TEST" in response.data
 
 
